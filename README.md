@@ -1,3 +1,4 @@
+ONLY FRONTEND....
 # Smart-Ring-App-FOR-USER-
 <img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/6b022c6e-4d02-47d9-9a16-edfe12acdf0e" />
 ---
