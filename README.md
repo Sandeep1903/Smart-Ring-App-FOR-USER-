@@ -1,7 +1,5 @@
 # Smart-Ring-App-FOR-USER-
 <img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/6b022c6e-4d02-47d9-9a16-edfe12acdf0e" />
-Here’s a **clean, professional, and GitHub-ready README description** for your smart ring project. You can copy-paste and tweak names if needed.
-
 ---
 
 # 💍 Smart Safety Ring & Monitoring System
@@ -105,9 +103,7 @@ It ensures real-time monitoring, predictive analysis, and instant notifications 
 
 **Software:**
 
-* Frontend: (React / Flutter / HTML-CSS-JS)
-* Backend: (Node.js / Python)
-* Database: (MongoDB / Firebase)
+* Frontend: (HTML/CSS/JS)
 
 **AI/ML:**
 
@@ -148,20 +144,3 @@ It ensures real-time monitoring, predictive analysis, and instant notifications 
 * Cloud-based analytics and scalability
 
 ---
-
-## 🤝 Contribution
-
-Contributions are welcome! Feel free to fork the repository and submit pull requests.
-
----
-
-## 📜 License
-
-This project is open-source and available under the MIT License.
-
----
-
-If you want, I can also:
-
-* make this **more aesthetic (with badges + images + diagrams)**
-* or **customize it exactly for your hackathon/judges pitch (strong impact version)**
