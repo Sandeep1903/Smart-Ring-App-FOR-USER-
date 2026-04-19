@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shakti Loop — Command Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+:root{
+  --bg:        #060810;
+  --bg1:       #080c15;
+  --bg2:       #0b0f1c;
+  --panel:     #0e1322;
+  --card:      #111828;
+  --card-hi:   #161f34;
+  --hover:     #1a2540;
+  --border:    rgba(255,255,255,0.06);
+  --border-md: rgba(255,255,255,0.10);
+  --border-hi: rgba(255,255,255,0.18);
+  --t0:#ecf0ff;--t1:#6a7da8;--t2:#343f60;--t3:#1e2540;
+  --accent:#6c7dff;
+  --accent2:#8b5cf6;
+  --accent-g:linear-gradient(135deg,#6c7dff 0%,#8b5cf6 100%);
+  --accent-glow:rgba(108,125,255,0.2);
+  --ok:#00d9a3;--ok-d:rgba(0,217,163,0.1);--ok-border:rgba(0,217,163,0.2);
+  --warn:#ffb224;--warn-d:rgba(255,178,36,0.1);--warn-border:rgba(255,178,36,0.22);
+  --crit:#ff3d5a;--crit-d:rgba(255,61,90,0.1);--crit-border:rgba(255,61,90,0.25);
+  --blue:#3b9eff;--blue-d:rgba(59,158,255,0.1);--blue-border:rgba(59,158,255,0.22);
+  --fh:'Outfit',sans-serif;
+  --fb:'DM Sans',sans-serif;
+  --fm:'DM Mono',monospace;
+  --r:18px;--r2:13px;--r3:8px;
+  --sh:0 4px 24px rgba(0,0,0,0.4);
+  --sh-lg:0 12px 48px rgba(0,0,0,0.6);
+}
+
+html,body{height:100%;width:100%;font-family:var(--fb);background:var(--bg);color:var(--t0);overflow:hidden;line-height:1}
+
+/* ══════ SCROLLBAR ══════ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--card-hi);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--hover)}
+
+/* ══════════════════════════════
+   LOGIN
+══════════════════════════════ */
+#loginPage{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;overflow:hidden;
+  transition:opacity .55s ease,transform .55s ease;
+}
+#loginPage.out{opacity:0;transform:scale(1.05) translateY(-10px);pointer-events:none}
+
+.login-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 70% at 65% 35%,rgba(108,125,255,0.15) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 50% at 25% 75%,rgba(0,217,163,0.07) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 40% at 80% 80%,rgba(139,92,246,0.08) 0%,transparent 55%),
+    var(--bg1);
+}
+.login-noise{
+  position:absolute;inset:0;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;
+}
+.login-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 120% 120% at 60% 40%,black 10%,transparent 75%);
+}
+
+.login-left{
+  width:54%;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:1;padding:64px;
+}
+.login-inner{max-width:400px;width:100%}
+
+.ll-logo{display:flex;align-items:center;gap:14px;margin-bottom:52px}
+.ll-icon-wrap{
+  width:46px;height:46px;border-radius:15px;
+  background:var(--accent-g);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.12),0 0 40px rgba(108,125,255,0.5);
+  flex-shrink:0;
+}
+.ll-icon-wrap svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.ll-brand{font-family:var(--fh);font-size:1.1rem;font-weight:800;color:var(--t0);letter-spacing:-.02em}
+.ll-subbrand{font-family:var(--fb);font-size:.65rem;font-weight:400;color:var(--t1);margin-top:2px;letter-spacing:.04em}
+
+.ll-h{
+  font-family:var(--fh);font-size:2.6rem;font-weight:900;
+  letter-spacing:-.05em;line-height:1.08;margin-bottom:12px;
+}
+.ll-h .grad{
+  background:var(--accent-g);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.ll-p{font-size:.875rem;color:var(--t1);line-height:1.75;margin-bottom:40px;font-weight:400}
+
+/* Form fields */
+.lf-group{margin-bottom:16px}
+.lf-lbl{display:block;font-size:.62rem;font-weight:600;color:var(--t1);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+.lf-iw{position:relative}
+.lf-iw .ico{
+  position:absolute;left:15px;top:50%;transform:translateY(-50%);
+  width:15px;height:15px;fill:none;stroke:var(--t2);stroke-width:2;stroke-linecap:round;pointer-events:none;
+}
+.lf-inp{
+  width:100%;padding:13px 16px 13px 44px;
+  background:var(--card);
+  border:1px solid var(--border-md);border-radius:var(--r2);
+  font-family:var(--fb);font-size:.875rem;color:var(--t0);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.lf-inp:focus{border-color:rgba(108,125,255,.5);box-shadow:0 0 0 3px rgba(108,125,255,.12)}
+.lf-inp::placeholder{color:var(--t2)}
+
+.pw-btn{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  font-family:var(--fm);font-size:.62rem;font-weight:500;color:var(--t1);
+  padding:4px 8px;border-radius:6px;transition:color .15s;
+}
+.pw-btn:hover{color:var(--t0)}
+
+.login-err{
+  font-size:.72rem;color:var(--crit);font-weight:500;
+  min-height:22px;margin-top:8px;display:flex;align-items:center;gap:6px;
+}
+
+.login-btn{
+  width:100%;padding:15px;border-radius:var(--r2);
+  background:var(--accent-g);border:none;
+  font-family:var(--fh);font-size:.95rem;font-weight:700;color:#fff;
+  cursor:pointer;transition:all .2s;letter-spacing:.01em;margin-top:8px;
+  box-shadow:0 4px 32px rgba(108,125,255,0.45);
+  position:relative;overflow:hidden;
+}
+.login-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(rgba(255,255,255,.12),transparent);
+  border-radius:inherit;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(108,125,255,0.55)}
+.login-btn:active{transform:translateY(0)}
+
+.login-creds{
+  margin-top:28px;padding:18px;
+  background:rgba(108,125,255,.06);
+  border:1px solid rgba(108,125,255,.15);border-radius:var(--r2);
+}
+.lc-h{font-size:.58rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px}
+.lc-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.lc-row:last-child{border:none;padding-bottom:0}
+.lc-k{font-size:.7rem;color:var(--t1)}
+.lc-v{font-family:var(--fm);font-size:.68rem;color:var(--t0);background:var(--bg2);padding:3px 10px;border-radius:6px;border:1px solid var(--border-md)}
+
+/* Login right panel */
+.login-right{
+  width:46%;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--bg2) 0%,var(--bg1) 100%);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:48px;
+}
+.lr-ring{
+  position:absolute;top:-100px;right:-100px;
+  width:500px;height:500px;border-radius:50%;
+  border:1px solid rgba(108,125,255,.08);
+}
+.lr-ring:nth-child(2){top:-60px;right:-60px;width:380px;height:380px;border-color:rgba(108,125,255,.05)}
+.lr-ring:nth-child(3){top:-20px;right:-20px;width:260px;height:260px;border-color:rgba(108,125,255,.04)}
+
+.preview-card{
+  width:100%;max-width:330px;
+  background:var(--card);
+  border:1px solid var(--border-md);border-radius:var(--r);
+  overflow:hidden;box-shadow:var(--sh-lg);
+  position:relative;z-index:1;
+}
+.pc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:var(--panel);border-bottom:1px solid var(--border);
+}
+.pc-dots{display:flex;gap:5px}
+.pc-dots span{width:8px;height:8px;border-radius:50%}
+.pc-live{font-family:var(--fm);font-size:.6rem;color:var(--t2)}
+.pc-stats{display:flex;padding:14px 18px;gap:0;border-bottom:1px solid var(--border)}
+.pc-stat{flex:1;text-align:center;padding:8px 0;border-right:1px solid var(--border)}
+.pc-stat:last-child{border:none}
+.pc-sv{font-family:var(--fh);font-size:1.1rem;font-weight:800;line-height:1}
+.pc-sl{font-size:.52rem;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+.pc-list{padding:12px;display:flex;flex-direction:column;gap:6px}
+.pc-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 11px;border-radius:10px;border:1px solid;
+}
+.pc-item.c-crit{background:rgba(255,61,90,.06);border-color:rgba(255,61,90,.18)}
+.pc-item.c-warn{background:rgba(255,178,36,.05);border-color:rgba(255,178,36,.15)}
+.pc-item.c-ok{background:rgba(0,217,163,.05);border-color:rgba(0,217,163,.14)}
+.pc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pc-name{font-size:.67rem;font-weight:500;flex:1}
+.pc-val{font-family:var(--fm);font-size:.62rem;font-weight:600}
+
+.lr-tag{
+  font-family:var(--fb);font-size:.75rem;color:var(--t2);text-align:center;position:relative;z-index:1;
+  display:flex;align-items:center;gap:8px;
+}
+.lr-tag::before,.lr-tag::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ══════════════════════════════
+   APP SHELL
+══════════════════════════════ */
+#mainApp{display:flex;height:100vh;opacity:0;transition:opacity .5s ease;pointer-events:none}
+#mainApp.in{opacity:1;pointer-events:all}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:relative;
+}
+.sidebar::after{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,rgba(108,125,255,.2) 30%,rgba(108,125,255,.2) 70%,transparent);
+}
+
+.sb-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sb-brand{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sb-icon{
+  width:36px;height:36px;border-radius:11px;
+  background:var(--accent-g);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 20px rgba(108,125,255,.4),0 0 0 1px rgba(255,255,255,.1);
+}
+.sb-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.sb-name{font-family:var(--fh);font-size:.95rem;font-weight:800;letter-spacing:-.02em}
+.sb-sub{font-size:.6rem;color:var(--t1);margin-top:1px}
+.sb-pulse{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:10px;
+  background:var(--ok-d);border:1px solid var(--ok-border);
+}
+.sb-pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pdot 2s ease infinite}
+@keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--ok)}50%{opacity:.5;box-shadow:0 0 0 4px rgba(0,217,163,0)}}
+.sb-pulse-txt{font-family:var(--fm);font-size:.62rem;color:var(--ok);font-weight:500}
+
+.sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.sb-sec-lbl{
+  font-size:.52rem;font-weight:700;color:var(--t2);
+  text-transform:uppercase;letter-spacing:.16em;
+  padding:0 12px;margin:18px 0 8px;
+}
+.sb-sec-lbl:first-child{margin-top:0}
+
+.nv{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 12px;border-radius:12px;
+  border:1px solid transparent;background:none;
+  font-family:var(--fb);font-size:.8rem;font-weight:500;color:var(--t1);
+  cursor:pointer;text-align:left;transition:all .18s;
+  position:relative;
+}
+.nv:hover{background:var(--hover);color:var(--t0)}
+.nv.on{
+  background:rgba(108,125,255,.14);border-color:rgba(108,125,255,.22);
+  color:var(--accent);font-weight:600;
+}
+.nv.on::before{
+  content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;border-radius:2px;background:var(--accent-g);
+}
+.nv svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nb{
+  margin-left:auto;font-family:var(--fm);font-size:.56rem;font-weight:700;
+  padding:3px 9px;border-radius:20px;
+}
+.nb-r{background:var(--crit-d);color:var(--crit);border:1px solid var(--crit-border)}
+.nb-a{background:var(--warn-d);color:var(--warn);border:1px solid var(--warn-border)}
+
+.sb-footer{padding:14px 10px;border-top:1px solid var(--border)}
+.sb-user{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:12px;cursor:pointer;transition:background .16s;
+}
+.sb-user:hover{background:var(--hover)}
+.sb-av{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#ffb224,#e07818);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:.8rem;font-weight:800;color:#fff;
+}
+.sb-uname{font-size:.77rem;font-weight:600;color:var(--t0)}
+.sb-urole{font-size:.6rem;color:var(--t1);margin-top:1px}
+.sb-logout{
+  margin-left:auto;background:none;border:none;cursor:pointer;
+  color:var(--t2);padding:5px;border-radius:7px;
+  transition:all .15s;display:flex;align-items:center;
+}
+.sb-logout:hover{color:var(--crit);background:var(--crit-d)}
+.sb-logout svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg1)}
+
+/* TOPBAR */
+.topbar{
+  height:58px;display:flex;align-items:center;
+  padding:0 28px;gap:14px;
+  background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.tb-breadcrumb{display:flex;align-items:center;gap:8px}
+.tb-title{font-family:var(--fh);font-size:1rem;font-weight:800;letter-spacing:-.02em}
+.tb-sep{color:var(--t2);font-size:.8rem;line-height:1}
+.tb-sub{font-size:.74rem;color:var(--t1);font-weight:400}
+.tb-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+.tb-pill{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 14px;border-radius:20px;border:1px solid;
+  font-family:var(--fb);font-size:.69rem;font-weight:600;cursor:pointer;
+  transition:all .16s;white-space:nowrap;
+}
+.tp-ok{background:var(--ok-d);border-color:var(--ok-border);color:var(--ok)}
+.tp-crit{background:var(--crit-d);border-color:var(--crit-border);color:var(--crit)}
+.tp-crit:hover{background:rgba(255,61,90,.18)}
+.tb-d{width:6px;height:6px;border-radius:50%}
+.d-ok{background:var(--ok)}
+.d-crit{background:var(--crit);animation:blink .9s ease infinite}
+.tb-clock{
+  font-family:var(--fm);font-size:.72rem;color:var(--t2);
+  padding:6px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* CONTENT */
+.content{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:24px 28px 32px;
+  scrollbar-width:thin;scrollbar-color:var(--card-hi) transparent;
+}
+
+/* PAGES */
+.page{display:none;animation:pg-in .28s ease both}
+.page.on{display:block}
+@keyframes pg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── GRIDS ── */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g-7-5{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:14px}
+.g-5-7{display:grid;grid-template-columns:1fr 1.55fr;gap:14px}
+.mb12{margin-bottom:12px}
+.mb16{margin-bottom:16px}
+.mb20{margin-bottom:20px}
+.mb24{margin-bottom:24px}
+
+/* ── SECTION HEAD ── */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sh-t{font-family:var(--fb);font-size:.68rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.1em}
+
+/* ── CONN BANNER ── */
+.conn-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 16px;border-radius:12px;
+  background:linear-gradient(90deg,rgba(0,217,163,.07),transparent);
+  border:1px solid var(--ok-border);
+  font-size:.73rem;font-weight:500;color:var(--ok);
+  margin-bottom:20px;
+}
+.conn-banner svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.conn-banner-r{margin-left:auto;font-family:var(--fm);font-size:.6rem;color:rgba(0,217,163,.6)}
+
+/* ── KPI CARDS ── */
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);padding:20px;
+  position:relative;overflow:hidden;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+  animation:fade-up .35s ease both;
+  cursor:default;
+}
+.kpi:hover{border-color:var(--border-md);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+
+.kpi-glow{
+  position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;
+  filter:blur(40px);opacity:.12;pointer-events:none;
+}
+.kpi-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+}
+.kpi-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kpi-val{font-family:var(--fh);font-size:2.5rem;font-weight:900;letter-spacing:-.07em;line-height:1;margin-bottom:6px}
+.kpi-lbl{font-size:.66rem;font-weight:600;color:var(--t1);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px}
+.kpi-bar{height:3px;background:var(--bg2);border-radius:2px;overflow:hidden;margin-bottom:10px}
+.kpi-bar-f{height:100%;border-radius:2px;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+.kpi-footer{display:flex;align-items:center;justify-content:space-between}
+.kpi-sub{font-size:.62rem;color:var(--t2);font-weight:400}
+.kpi-badge{font-family:var(--fm);font-size:.58rem;font-weight:700;padding:3px 9px;border-radius:20px}
+
+@keyframes fade-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.kpi:nth-child(1){animation-delay:0s}
+.kpi:nth-child(2){animation-delay:.06s}
+.kpi:nth-child(3){animation-delay:.12s}
+.kpi:nth-child(4){animation-delay:.18s}
+
+/* ── CARD ── */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;animation:fade-up .32s ease both;
+}
+.cp{padding:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ch-t{font-family:var(--fh);font-size:.88rem;font-weight:700;letter-spacing:-.02em}
+.ch-r{display:flex;align-items:center;gap:8px}
+
+/* ── BADGES ── */
+.badge{
+  font-size:.58rem;font-weight:700;padding:4px 10px;border-radius:20px;
+  font-family:var(--fm);white-space:nowrap;letter-spacing:.04em;text-transform:uppercase;
+}
+.b-ok{background:var(--ok-d);color:var(--ok);border:1px solid var(--ok-border)}
+.b-warn{background:var(--warn-d);color:var(--warn);border:1px solid var(--warn-border)}
+.b-crit{background:var(--crit-d);color:var(--crit);border:1px solid var(--crit-border)}
+.b-blue{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-border)}
+.b-neu{background:rgba(255,255,255,.05);color:var(--t1);border:1px solid var(--border-md)}
+.b-acc{background:rgba(108,125,255,.12);color:var(--accent);border:1px solid rgba(108,125,255,.22)}
+.b-live{background:var(--ok-d);color:var(--ok);border:1px solid var(--ok-border);animation:blink 2.5s ease infinite}
+
+/* ── TABLE ── */
+.tbl-wrap{
+  border-radius:12px;border:1px solid var(--border);
+  overflow:auto;
+  scrollbar-width:thin;scrollbar-color:var(--card-hi) transparent;
+}
+.tbl-wrap::-webkit-scrollbar{width:3px}
+.tbl-wrap::-webkit-scrollbar-thumb{background:var(--card-hi)}
+
+.wt{width:100%;border-collapse:collapse}
+.wt thead th{
+  padding:10px 16px;text-align:left;
+  font-size:.58rem;font-weight:700;color:var(--t2);
+  text-transform:uppercase;letter-spacing:.1em;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:2;font-family:var(--fm);white-space:nowrap;
+}
+.wt tbody tr{
+  border-bottom:1px solid rgba(255,255,255,.03);
+  cursor:pointer;transition:background .14s;
+}
+.wt tbody tr:last-child{border-bottom:none}
+.wt tbody tr:hover{background:var(--hover)}
+.wt tbody tr.row-crit{background:rgba(255,61,90,.04)}
+.wt tbody tr.row-crit:hover{background:rgba(255,61,90,.08)}
+.wt tbody tr.row-warn{background:rgba(255,178,36,.03)}
+.wt tbody tr.row-warn:hover{background:rgba(255,178,36,.07)}
+.wt tbody td{padding:13px 16px;font-size:.79rem;vertical-align:middle}
+
+.w-av{
+  width:36px;height:36px;border-radius:11px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:.72rem;font-weight:800;color:#fff;
+}
+.w-nm{font-weight:600;font-size:.82rem;margin-bottom:2px;font-family:var(--fb);color:var(--t0)}
+.w-role{font-size:.62rem;color:var(--t1);font-weight:400}
+.w-inf{display:flex;align-items:center;gap:10px}
+
+.vc{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.74rem;font-weight:500}
+.vd{width:5px;height:5px;border-radius:50%}
+
+.fat-row{display:flex;align-items:center;gap:8px}
+.fat-n{font-family:var(--fm);font-size:.78rem;font-weight:600;min-width:26px}
+.fat-bar{width:56px;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden}
+.fat-fill{height:100%;border-radius:2px;transition:width .9s ease}
+
+.ign-tag{
+  font-size:.56rem;font-weight:700;padding:3px 8px;border-radius:6px;
+  background:var(--warn-d);color:var(--warn);border:1px solid var(--warn-border);
+  font-family:var(--fm);
+}
+
+/* Action buttons */
+.ab{
+  padding:5px 12px;border-radius:8px;
+  font-family:var(--fb);font-size:.65rem;font-weight:600;
+  cursor:pointer;transition:all .15s;white-space:nowrap;border:1px solid;
+}
+.ab-blu{background:var(--blue-d);border-color:var(--blue-border);color:var(--blue)}
+.ab-blu:hover{background:rgba(59,158,255,.2)}
+.ab-warn{background:var(--warn-d);border-color:var(--warn-border);color:var(--warn)}
+.ab-warn:hover{background:rgba(255,178,36,.2)}
+.ab-crit{background:var(--crit-d);border-color:var(--crit-border);color:var(--crit)}
+.ab-crit:hover{background:rgba(255,61,90,.2)}
+.ab-acc{background:rgba(108,125,255,.1);border-color:rgba(108,125,255,.2);color:var(--accent)}
+.ab-acc:hover{background:rgba(108,125,255,.18)}
+
+/* ── ALERTS ── */
+.ai{
+  display:flex;align-items:flex-start;gap:13px;
+  padding:14px 16px;border-radius:13px;border:1px solid;
+  margin-bottom:8px;cursor:pointer;
+  transition:transform .16s,box-shadow .16s;animation:fade-up .3s ease both;
+}
+.ai:hover{transform:translateX(5px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.ai.crit{background:rgba(255,61,90,.05);border-color:var(--crit-border)}
+.ai.warn{background:rgba(255,178,36,.04);border-color:var(--warn-border)}
+.ai.info{background:var(--blue-d);border-color:var(--blue-border)}
+.ai.ok{background:var(--ok-d);border-color:var(--ok-border)}
+.ai-ic{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.ai-ic svg{width:16px;height:16px;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ai-title{font-size:.8rem;font-weight:700;margin-bottom:4px;font-family:var(--fb);line-height:1.3}
+.ai-sub{font-size:.66rem;color:var(--t1);line-height:1.55}
+.ai-time{font-family:var(--fm);font-size:.58rem;color:var(--t2);margin-left:auto;white-space:nowrap;padding-top:2px;flex-shrink:0}
+
+/* ── SITE MAP ── */
+.zone-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.zone-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px;
+  transition:border-color .18s;
+}
+.zone-box:hover{border-color:var(--border-md)}
+.zone-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.zone-name{font-family:var(--fh);font-size:.82rem;font-weight:800;color:var(--t0)}
+.zone-cnt{
+  font-family:var(--fm);font-size:.6rem;color:var(--t1);
+  background:var(--bg2);padding:3px 10px;border-radius:20px;border:1px solid var(--border-md);
+}
+.zone-workers{display:flex;flex-wrap:wrap;gap:8px}
+.zw{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:.65rem;font-weight:800;color:#fff;
+  cursor:pointer;transition:transform .16s,box-shadow .16s;
+  position:relative;border:2px solid transparent;
+}
+.zw:hover{transform:scale(1.14);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.zw.w-warn{border-color:rgba(255,178,36,.5);box-shadow:0 0 0 3px rgba(255,178,36,.12)}
+.zw.w-crit{border-color:rgba(255,61,90,.6);box-shadow:0 0 0 3px rgba(255,61,90,.18)}
+.zw-ring{position:absolute;inset:-6px;border-radius:16px;animation:ring-pulse 2s ease infinite}
+.zw.w-warn .zw-ring{border:1.5px solid rgba(255,178,36,.4)}
+.zw.w-crit .zw-ring{border:1.5px solid rgba(255,61,90,.55);animation-duration:1.1s}
+@keyframes ring-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0;transform:scale(1.35)}}
+.zw-offline{opacity:.3;filter:grayscale(1);pointer-events:none}
+
+/* ── SEARCH & FILTER ── */
+.search-wrap{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 15px;background:var(--card);
+  border:1px solid var(--border-md);border-radius:var(--r2);
+  margin-bottom:12px;transition:border-color .18s;
+}
+.search-wrap:focus-within{border-color:rgba(108,125,255,.4);box-shadow:0 0 0 3px rgba(108,125,255,.08)}
+.search-wrap svg{width:14px;height:14px;fill:none;stroke:var(--t2);stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.search-wrap input{flex:1;background:none;border:none;color:var(--t0);font-family:var(--fb);font-size:.82rem;outline:none}
+.search-wrap input::placeholder{color:var(--t2)}
+
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.fp{
+  padding:6px 16px;border-radius:20px;border:1px solid var(--border-md);
+  background:none;font-family:var(--fb);font-size:.67rem;font-weight:500;
+  color:var(--t1);cursor:pointer;transition:all .16s;
+}
+.fp:hover{border-color:var(--border-hi);color:var(--t0)}
+.fp.on{background:rgba(108,125,255,.14);border-color:rgba(108,125,255,.3);color:var(--accent);font-weight:600}
+.fp.on-crit{background:var(--crit-d);border-color:var(--crit-border);color:var(--crit);font-weight:600}
+.fp.on-warn{background:var(--warn-d);border-color:var(--warn-border);color:var(--warn);font-weight:600}
+.fp.on-ok{background:var(--ok-d);border-color:var(--ok-border);color:var(--ok);font-weight:600}
+
+/* ── SIDE PANEL ── */
+.side-panel{
+  position:fixed;top:0;right:-480px;width:456px;height:100vh;z-index:600;
+  background:var(--panel);border-left:1px solid var(--border-md);
+  display:flex;flex-direction:column;
+  transition:right .34s cubic-bezier(.4,0,.2,1);
+  box-shadow:-24px 0 80px rgba(0,0,0,.6);
+}
+.side-panel.open{right:0}
+.sp-hdr{
+  padding:22px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.sp-hdr-meta{flex:1}
+.sp-hdr-eyebrow{font-size:.55rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.14em;font-family:var(--fm);margin-bottom:4px}
+.sp-hdr-title{font-family:var(--fh);font-size:1rem;font-weight:800;letter-spacing:-.02em}
+.sp-close{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border-md);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--t1);font-size:1rem;
+  transition:all .15s;flex-shrink:0;
+}
+.sp-close:hover{background:var(--crit-d);color:var(--crit);border-color:var(--crit-border)}
+.sp-body{flex:1;overflow-y:auto;padding:20px 24px;scrollbar-width:thin;scrollbar-color:var(--card-hi) transparent}
+.sp-body::-webkit-scrollbar{width:3px}
+.sp-body::-webkit-scrollbar-thumb{background:var(--card-hi)}
+
+.sp-hero{
+  display:flex;align-items:center;gap:14px;
+  padding:18px;background:var(--card-hi);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:16px;
+}
+.sp-av{
+  width:54px;height:54px;border-radius:15px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);font-size:1.1rem;font-weight:900;color:#fff;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+}
+.sp-wname{font-family:var(--fh);font-size:1rem;font-weight:800;margin-bottom:4px;letter-spacing:-.02em}
+.sp-wmeta{font-size:.66rem;color:var(--t1)}
+
+.sp-vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.sp-v{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;text-align:center;
+}
+.sp-v-val{font-family:var(--fh);font-size:1.4rem;font-weight:900;line-height:1;letter-spacing:-.04em}
+.sp-v-lbl{font-size:.52rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.1em;margin-top:6px;font-family:var(--fm)}
+
+.sp-chart-wrap{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:13px;padding:16px;margin-bottom:14px;
+}
+.sp-chart-lbl{font-size:.58rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-family:var(--fm)}
+
+.sp-hist{border-radius:12px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.sp-hi{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:11px 15px;font-size:.74rem;
+  background:var(--card);border-bottom:1px solid var(--border);
+}
+.sp-hi:last-child{border-bottom:none}
+.sp-hi-l{color:var(--t1);font-weight:400}
+.sp-hi-v{font-family:var(--fm);font-weight:500;color:var(--t0)}
+
+.sp-act-btn{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;padding:14px;border-radius:13px;
+  font-family:var(--fh);font-size:.85rem;font-weight:800;
+  cursor:pointer;transition:all .18s;border:none;letter-spacing:-.01em;
+}
+.sp-act-btn svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round}
+.spa-c{background:linear-gradient(135deg,#ff3d5a,#d4003e);color:#fff;box-shadow:0 6px 24px rgba(255,61,90,.4)}
+.spa-c:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,61,90,.5)}
+.spa-w{background:linear-gradient(135deg,#ffb224,#d87e00);color:#fff;box-shadow:0 6px 24px rgba(255,178,36,.4)}
+.spa-w:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,178,36,.45)}
+
+/* ── EMERGENCY MODAL ── */
+.overlay{
+  position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,.88);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease;
+  backdrop-filter:blur(6px) saturate(.8);
+}
+.overlay.show{opacity:1;pointer-events:all}
+
+.em-modal{
+  width:92%;max-width:480px;
+  background:var(--panel);
+  border:1px solid rgba(255,61,90,.35);
+  border-radius:22px;padding:38px;text-align:center;
+  box-shadow:0 0 0 1px rgba(255,61,90,.08),0 40px 100px rgba(0,0,0,.8),0 0 80px rgba(255,61,90,.08);
+  animation:modal-in .32s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes modal-in{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+
+.em-sos{
+  width:84px;height:84px;border-radius:50%;
+  background:rgba(255,61,90,.1);border:2px solid rgba(255,61,90,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 22px;
+  animation:sos-beat 1.3s ease infinite;
+}
+@keyframes sos-beat{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,61,90,.5),inset 0 0 0 0 rgba(255,61,90,.05)}
+  50%{box-shadow:0 0 0 18px rgba(255,61,90,0),inset 0 0 20px rgba(255,61,90,.06)}
+}
+.em-sos svg{width:40px;height:40px;fill:none;stroke:var(--crit);stroke-width:1.8;stroke-linecap:round}
+.em-title{
+  font-family:var(--fh);font-size:1.7rem;font-weight:900;
+  color:var(--crit);letter-spacing:-.04em;margin-bottom:6px;
+}
+.em-who{font-family:var(--fh);font-size:1rem;font-weight:700;color:var(--t0);margin-bottom:4px;letter-spacing:-.02em}
+.em-desc{font-size:.79rem;color:var(--t1);line-height:1.65;margin-bottom:24px}
+
+.em-stats{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.em-stat{
+  background:var(--card);border:1px solid var(--border-md);
+  border-radius:13px;padding:14px 22px;flex:1;
+}
+.em-sv{font-family:var(--fh);font-size:1.35rem;font-weight:900;line-height:1;letter-spacing:-.04em}
+.em-sl{font-size:.54rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.09em;margin-top:6px;font-family:var(--fm)}
+
+.em-ticker{
+  font-family:var(--fm);font-size:.7rem;font-weight:600;color:var(--crit);
+  background:var(--crit-d);border:1px solid var(--crit-border);
+  padding:9px 20px;border-radius:9px;margin-bottom:24px;
+  animation:blink 1.2s ease infinite;letter-spacing:.04em;
+}
+
+.em-btns{display:flex;gap:10px}
+.em-call{
+  flex:1;padding:15px;border-radius:13px;
+  background:linear-gradient(135deg,#ff3d5a,#d4003e);
+  border:none;font-family:var(--fh);font-size:.9rem;font-weight:800;color:#fff;
+  cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:0 6px 28px rgba(255,61,90,.45);letter-spacing:-.01em;
+}
+.em-call:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(255,61,90,.55)}
+.em-call svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round}
+.em-dismiss{
+  padding:15px 22px;border-radius:13px;
+  background:var(--card);border:1px solid var(--border-md);
+  font-family:var(--fh);font-size:.84rem;font-weight:700;color:var(--t1);
+  cursor:pointer;transition:all .15s;
+}
+.em-dismiss:hover{color:var(--t0);background:var(--card-hi);border-color:var(--border-hi)}
+
+.em-confirmed{
+  display:none;align-items:center;gap:10px;
+  margin-top:16px;padding:14px 16px;
+  background:var(--ok-d);border:1px solid var(--ok-border);
+  border-radius:11px;font-size:.77rem;font-weight:600;color:var(--ok);
+  font-family:var(--fb);
+}
+.em-confirmed.show{display:flex}
+.em-confirmed svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;flex-shrink:0}
+
+/* ── REST MODAL ── */
+.rest-modal{
+  width:92%;max-width:420px;
+  background:var(--panel);border:1px solid rgba(255,178,36,.3);
+  border-radius:22px;padding:34px;text-align:center;
+  box-shadow:0 40px 100px rgba(0,0,0,.8),0 0 60px rgba(255,178,36,.05);
+  animation:modal-in .32s cubic-bezier(.34,1.56,.64,1) both;
+}
+.rm-ico{
+  width:68px;height:68px;border-radius:50%;
+  background:var(--warn-d);border:2px solid var(--warn-border);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+}
+.rm-ico svg{width:30px;height:30px;fill:none;stroke:var(--warn);stroke-width:2;stroke-linecap:round}
+.rm-title{font-family:var(--fh);font-size:1.35rem;font-weight:900;color:var(--warn);margin-bottom:10px;letter-spacing:-.03em}
+.rm-sub{font-size:.79rem;color:var(--t1);line-height:1.65;margin-bottom:24px}
+.rm-btns{display:flex;gap:10px}
+.rm-force{
+  flex:1;padding:13px;border-radius:12px;
+  background:linear-gradient(135deg,#ffb224,#d87e00);border:none;
+  font-family:var(--fh);font-size:.85rem;font-weight:800;color:#fff;
+  cursor:pointer;transition:all .16s;
+}
+.rm-force:hover{opacity:.9;transform:translateY(-1px)}
+.rm-ack{
+  padding:13px 22px;border-radius:12px;
+  background:var(--card);border:1px solid var(--border-md);
+  font-family:var(--fh);font-size:.8rem;font-weight:700;color:var(--t1);
+  cursor:pointer;transition:all .15s;
+}
+.rm-ack:hover{color:var(--t0);background:var(--card-hi)}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9000;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:360px}
+.toast{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;border-radius:14px;width:100%;
+  background:var(--panel);border:1px solid var(--border-md);
+  box-shadow:0 8px 48px rgba(0,0,0,.6);pointer-events:all;
+  animation:t-in .3s cubic-bezier(.34,1.3,.64,1) both;font-family:var(--fb);
+  backdrop-filter:blur(10px);
+}
+.toast.t-crit{border-color:var(--crit-border);background:rgba(12,6,8,.98)}
+.toast.t-warn{border-color:var(--warn-border);background:rgba(12,10,4,.98)}
+.toast.t-ok{border-color:var(--ok-border)}
+@keyframes t-in{from{opacity:0;transform:translateX(20px) scale(.94)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes t-out{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(16px)}}
+.t-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.t-ico svg{width:14px;height:14px;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.t-msg{flex:1;font-size:.75rem;font-weight:500;line-height:1.45;color:var(--t0)}
+.t-x{background:none;border:none;cursor:pointer;color:var(--t2);font-size:.95rem;padding:3px;line-height:1;transition:color .14s}
+.t-x:hover{color:var(--t0)}
+
+canvas{display:block}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="loginPage">
+  <div class="login-bg"></div>
+  <div class="login-noise"></div>
+  <div class="login-grid"></div>
+
+  <div class="login-left">
+    <div class="login-inner">
+      <div class="ll-logo">
+        <div class="ll-icon-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        </div>
+        <div>
+          <div class="ll-brand">Shakti Loop</div>
+          <div class="ll-subbrand">Command Centre · v2.4</div>
+        </div>
+      </div>
+
+      <h1 class="ll-h">Monitor your<br>site, <span class="grad">live.</span></h1>
+      <p class="ll-p">Real-time health monitoring for construction workers — fatigue alerts, emergency response, and full site analytics in one place.</p>
+
+      <div class="lf-group">
+        <label class="lf-lbl">Email Address</label>
+        <div class="lf-iw">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input class="lf-inp" type="email" id="loginEmail" placeholder="manager@siteloop.com" value="manager@siteloop.com">
+        </div>
+      </div>
+
+      <div class="lf-group">
+        <label class="lf-lbl">Password</label>
+        <div class="lf-iw">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <input class="lf-inp" type="password" id="loginPass" placeholder="Enter your password" value="admin123" style="padding-right:62px">
+          <button class="pw-btn" onclick="togglePw()">SHOW</button>
+        </div>
+      </div>
+
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" onclick="doLogin()">Sign in to Dashboard →</button>
+
+      <div class="login-creds">
+        <div class="lc-h">Demo Credentials</div>
+        <div class="lc-row"><span class="lc-k">Email</span><span class="lc-v">manager@siteloop.com</span></div>
+        <div class="lc-row"><span class="lc-k">Password</span><span class="lc-v">admin123</span></div>
+        <div class="lc-row"><span class="lc-k">Role</span><span class="lc-v">Site Manager</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="lr-ring"></div>
+    <div class="lr-ring"></div>
+    <div class="lr-ring"></div>
+
+    <div class="preview-card">
+      <div class="pc-head">
+        <div class="pc-dots">
+          <span style="background:#ff3d5a"></span>
+          <span style="background:#ffb224"></span>
+          <span style="background:#00d9a3"></span>
+        </div>
+        <span class="pc-live">14 workers · Live</span>
+      </div>
+      <div class="pc-stats">
+        <div class="pc-stat"><div class="pc-sv" style="color:#00d9a3">12</div><div class="pc-sl">Online</div></div>
+        <div class="pc-stat"><div class="pc-sv" style="color:#ff3d5a">2</div><div class="pc-sl">Critical</div></div>
+        <div class="pc-stat"><div class="pc-sv" style="color:#ffb224">3</div><div class="pc-sl">Warnings</div></div>
+        <div class="pc-stat"><div class="pc-sv" style="color:#3b9eff">79</div><div class="pc-sl">Avg HR</div></div>
+      </div>
+      <div class="pc-list">
+        <div class="pc-item c-crit">
+          <div class="pc-dot" style="background:#ff3d5a;animation:blink .9s ease infinite"></div>
+          <span class="pc-name">Vikram Singh — Critical</span>
+          <span class="pc-val" style="color:#ff3d5a">HR 118</span>
+        </div>
+        <div class="pc-item c-warn">
+          <div class="pc-dot" style="background:#ffb224;animation:blink 1.5s ease infinite"></div>
+          <span class="pc-name">Arjun Sharma — Warning</span>
+          <span class="pc-val" style="color:#ffb224">Fat 82</span>
+        </div>
+        <div class="pc-item c-ok">
+          <div class="pc-dot" style="background:#00d9a3"></div>
+          <span class="pc-name">Ravi Patel — Healthy</span>
+          <span class="pc-val" style="color:#00d9a3">OK</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lr-tag">Connected to 14 Shakti Loop rings · Syncing every 3s</div>
+  </div>
+</div>
+
+<!-- ════════════════ MAIN APP ════════════════ -->
+<div id="mainApp">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">
+        <div class="sb-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        </div>
+        <div>
+          <div class="sb-name">Shakti Loop</div>
+          <div class="sb-sub">Command Centre</div>
+        </div>
+      </div>
+      <div class="sb-pulse">
+        <div class="sb-pulse-dot"></div>
+        <span class="sb-pulse-txt">12 devices syncing live</span>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-sec-lbl">Monitor</div>
+      <button class="nv on" data-page="dashboard">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="nv" data-page="workers">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        All Workers
+        <span class="nb nb-a" id="navWarnBadge">3</span>
+      </button>
+      <button class="nv" data-page="alerts">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Alerts
+        <span class="nb nb-r" id="navAlertBadge">5</span>
+      </button>
+      <button class="nv" data-page="sitemap">
+        <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        Site Map
+      </button>
+
+      <div class="sb-sec-lbl">Analytics</div>
+      <button class="nv" data-page="analytics">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Health Trends
+      </button>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av">R</div>
+        <div>
+          <div class="sb-uname">Rajesh Kumar</div>
+          <div class="sb-urole">Site Manager</div>
+        </div>
+        <button class="sb-logout" onclick="doLogout()" title="Sign out">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div class="tb-breadcrumb">
+        <div class="tb-title" id="topTitle">Dashboard</div>
+        <div class="tb-sep">/</div>
+        <div class="tb-sub" id="topSub">Live site overview</div>
+      </div>
+      <div class="tb-right">
+        <div class="tb-pill tp-ok">
+          <div class="tb-d d-ok"></div>
+          <span id="topConn">12 Workers Online</span>
+        </div>
+        <div class="tb-pill tp-crit" id="topAlertBtn" style="display:none" onclick="goPage('alerts')">
+          <div class="tb-d d-crit"></div>
+          <span id="topAlertTxt">2 Critical</span>
+        </div>
+        <div class="tb-clock" id="tbClock">--:--:--</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page on" id="page-dashboard">
+
+        <div class="conn-banner">
+          <svg viewBox="0 0 24 24"><path d="M1 6s4-4 11-4 11 4 11 4M5 10s2.5-3 7-3 7 3 7 3M9 14s1.5-1.5 3-1.5 3 1.5 3 1.5"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+          Shakti Loop Worker App connected · All rings syncing · Auto-refresh every 3s
+          <span class="conn-banner-r" id="dashClock">--:--</span>
+        </div>
+
+        <!-- KPIs -->
+        <div class="g4 mb16">
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--blue)"></div>
+            <div class="kpi-icon" style="background:var(--blue-d);color:var(--blue)">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="kpi-val" style="color:var(--blue)">12</div>
+            <div class="kpi-lbl">Workers Online</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:86%;background:var(--blue)"></div></div>
+            <div class="kpi-footer">
+              <span class="kpi-sub">2 on break</span>
+              <span class="kpi-badge" style="background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-border)">14 total</span>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--ok)"></div>
+            <div class="kpi-icon" style="background:var(--ok-d);color:var(--ok)">
+              <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="kpi-val" id="dashAvgHR" style="color:var(--ok)">79</div>
+            <div class="kpi-lbl">Avg Heart Rate (bpm)</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:70%;background:var(--ok)"></div></div>
+            <div class="kpi-footer">
+              <span class="kpi-sub">site-wide · live</span>
+              <span class="kpi-badge b-ok">Normal</span>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--warn)"></div>
+            <div class="kpi-icon" style="background:var(--warn-d);color:var(--warn)">
+              <svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3H20.5a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="kpi-val" id="dashHighFat" style="color:var(--warn)">3</div>
+            <div class="kpi-lbl">High Fatigue Workers</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:25%;background:var(--warn)"></div></div>
+            <div class="kpi-footer">
+              <span class="kpi-sub">score above 75</span>
+              <span class="kpi-badge b-warn">Rest needed</span>
+            </div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-glow" style="background:var(--crit)"></div>
+            <div class="kpi-icon" style="background:var(--crit-d);color:var(--crit)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="15.5" r=".8" fill="currentColor"/></svg>
+            </div>
+            <div class="kpi-val" id="dashAlerts" style="color:var(--crit)">5</div>
+            <div class="kpi-lbl">Active Alerts</div>
+            <div class="kpi-bar"><div class="kpi-bar-f" style="width:100%;background:linear-gradient(90deg,var(--crit),#ff6b7a)"></div></div>
+            <div class="kpi-footer">
+              <span class="kpi-sub">2 critical · 3 warn</span>
+              <span class="kpi-badge b-crit">Needs action</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Worker table + Alerts -->
+        <div class="g-7-5 mb16">
+          <div class="card">
+            <div class="cp">
+              <div class="ch">
+                <span class="ch-t">Live Worker Status</span>
+                <div class="ch-r">
+                  <span class="badge b-live">● Live</span>
+                </div>
+              </div>
+              <div class="tbl-wrap" style="max-height:340px">
+                <table class="wt">
+                  <thead><tr>
+                    <th>Worker</th><th>Heart Rate</th><th>SpO₂</th><th>Fatigue</th><th>Status</th><th>Action</th>
+                  </tr></thead>
+                  <tbody id="dashTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="cp">
+              <div class="ch">
+                <span class="ch-t">Active Alerts</span>
+                <span class="badge b-crit" id="alertCountBadge">5</span>
+              </div>
+              <div id="dashAlertList" style="max-height:340px;overflow-y:auto;scrollbar-width:thin"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="g2">
+          <div class="card">
+            <div class="cp">
+              <div class="ch">
+                <span class="ch-t">Site Heart Rate — Live</span>
+                <span class="badge b-live">● Updating</span>
+              </div>
+              <div style="height:140px"><canvas id="cSiteHR"></canvas></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cp">
+              <div class="ch">
+                <span class="ch-t">Fatigue Distribution</span>
+                <span class="badge b-neu">Right now</span>
+              </div>
+              <div style="height:140px"><canvas id="cFatDist"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ WORKERS ══ -->
+      <div class="page" id="page-workers">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="workerSearch" placeholder="Search by name, role, or zone…" oninput="filterWorkers()">
+        </div>
+        <div class="filter-pills">
+          <button class="fp on" data-f="all" onclick="setFilter('all',this)">All Workers</button>
+          <button class="fp" data-f="critical" onclick="setFilter('critical',this)">🔴 Critical</button>
+          <button class="fp" data-f="warning" onclick="setFilter('warning',this)">🟡 Warning</button>
+          <button class="fp" data-f="ok" onclick="setFilter('ok',this)">🟢 Healthy</button>
+          <button class="fp" data-f="rest" onclick="setFilter('rest',this)">💤 On Break</button>
+        </div>
+        <div class="tbl-wrap" style="max-height:calc(100vh - 300px)">
+          <table class="wt">
+            <thead><tr>
+              <th>Worker</th><th>Zone</th><th>Heart Rate</th><th>SpO₂</th><th>Fatigue</th><th>Rest Ignores</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="workersTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ ALERTS ══ -->
+      <div class="page" id="page-alerts">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div>
+            <div style="font-family:var(--fh);font-size:.95rem;font-weight:800;letter-spacing:-.02em;margin-bottom:3px">Active Alerts</div>
+            <div style="font-size:.72rem;color:var(--t1)">Critical alerts shown first · Click to view worker details</div>
+          </div>
+          <button onclick="clearAlerts()" style="padding:8px 18px;border-radius:10px;background:var(--card);border:1px solid var(--border-md);font-family:var(--fb);font-size:.72rem;font-weight:600;color:var(--t1);cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--crit)';this.style.borderColor='var(--crit-border)'" onmouseout="this.style.color='var(--t1)';this.style.borderColor='var(--border-md)'">Clear All</button>
+        </div>
+        <div id="alertsPageList"></div>
+      </div>
+
+      <!-- ══ SITE MAP ══ -->
+      <div class="page" id="page-sitemap">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:11px 16px;background:var(--card);border:1px solid var(--border);border-radius:11px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="15.5" r=".8" fill="currentColor"/></svg>
+          <span style="font-size:.73rem;color:var(--t1)">Click any worker avatar to view details. Pulsing border indicates an active alert.</span>
+        </div>
+        <div class="zone-grid" id="siteZones"></div>
+        <div class="g3">
+          <div class="kpi" style="animation-delay:.05s">
+            <div class="kpi-glow" style="background:var(--blue)"></div>
+            <div class="kpi-icon" style="background:var(--blue-d);color:var(--blue)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="kpi-val" id="zoneACount" style="color:var(--blue)">4</div>
+            <div class="kpi-lbl">Zone A — Foundation</div>
+            <div class="kpi-sub">workers active</div>
+          </div>
+          <div class="kpi" style="animation-delay:.1s">
+            <div class="kpi-glow" style="background:var(--ok)"></div>
+            <div class="kpi-icon" style="background:var(--ok-d);color:var(--ok)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="kpi-val" id="zoneBCount" style="color:var(--ok)">5</div>
+            <div class="kpi-lbl">Zone B — Structure</div>
+            <div class="kpi-sub">workers active</div>
+          </div>
+          <div class="kpi" style="animation-delay:.15s">
+            <div class="kpi-glow" style="background:var(--warn)"></div>
+            <div class="kpi-icon" style="background:var(--warn-d);color:var(--warn)"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+            <div class="kpi-val" id="zoneCCount" style="color:var(--warn)">3</div>
+            <div class="kpi-lbl">Zone C — Electrical</div>
+            <div class="kpi-sub">workers active</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ANALYTICS ══ -->
+      <div class="page" id="page-analytics">
+        <div style="margin-bottom:20px">
+          <div style="font-family:var(--fh);font-size:.95rem;font-weight:800;letter-spacing:-.02em;margin-bottom:3px">Health Trends</div>
+          <div style="font-size:.72rem;color:var(--t1)">7-day site analytics · Auto-updated daily</div>
+        </div>
+        <div class="g2 mb16">
+          <div class="card"><div class="cp">
+            <div class="ch"><span class="ch-t">Avg Heart Rate</span><span class="badge b-ok">7 days · bpm</span></div>
+            <div style="height:160px"><canvas id="cAnalHR"></canvas></div>
+          </div></div>
+          <div class="card"><div class="cp">
+            <div class="ch"><span class="ch-t">Team Fatigue Score</span><span class="badge b-warn">7 days · avg</span></div>
+            <div style="height:160px"><canvas id="cAnalFat"></canvas></div>
+          </div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="cp">
+            <div class="ch"><span class="ch-t">Avg Blood Oxygen</span><span class="badge b-blue">7 days · %</span></div>
+            <div style="height:160px"><canvas id="cAnalSPO"></canvas></div>
+          </div></div>
+          <div class="card"><div class="cp">
+            <div class="ch"><span class="ch-t">Alert Frequency</span><span class="badge b-crit">7 days · count</span></div>
+            <div style="height:160px"><canvas id="cAnalAlerts"></canvas></div>
+          </div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SIDE PANEL -->
+<div class="side-panel" id="sidePanel">
+  <div class="sp-hdr">
+    <div class="sp-hdr-meta">
+      <div class="sp-hdr-eyebrow">Worker Detail</div>
+      <div class="sp-hdr-title" id="spTitle">—</div>
+    </div>
+    <div class="sp-close" onclick="closePanel()">✕</div>
+  </div>
+  <div class="sp-body" id="spBody"></div>
+</div>
+
+<!-- EMERGENCY MODAL -->
+<div class="overlay" id="emergencyModal">
+  <div class="em-modal">
+    <div class="em-sos">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 012.08 4.16 2 2 0 014 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+    </div>
+    <div class="em-title">EMERGENCY ALERT</div>
+    <div class="em-who" id="emWorkerName">—</div>
+    <div class="em-desc" id="emSub">Critical health event detected. Immediate attention required.</div>
+    <div class="em-stats">
+      <div class="em-stat">
+        <div class="em-sv" id="emHR" style="color:var(--crit)">—</div>
+        <div class="em-sl">Heart Rate</div>
+      </div>
+      <div class="em-stat">
+        <div class="em-sv" id="emSPO" style="color:var(--ok)">—</div>
+        <div class="em-sl">SpO₂</div>
+      </div>
+      <div class="em-stat">
+        <div class="em-sv" id="emFat" style="color:var(--warn)">—</div>
+        <div class="em-sl">Fatigue</div>
+      </div>
+    </div>
+    <div class="em-ticker" id="emStatus">CRITICAL — IMMEDIATE ACTION REQUIRED</div>
+    <div class="em-btns">
+      <button class="em-call" onclick="callAmbulance()">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 012.08 4.16 2 2 0 014 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        Call Ambulance — 108
+      </button>
+      <button class="em-dismiss" onclick="closeEmergency()">Dismiss</button>
+    </div>
+    <div class="em-confirmed" id="ambulanceCalled">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Ambulance dispatched — ETA 8 min · Location shared with emergency services
+    </div>
+  </div>
+</div>
+
+<!-- REST MODAL -->
+<div class="overlay" id="restModal">
+  <div class="rest-modal">
+    <div class="rm-ico">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </div>
+    <div class="rm-title" id="rmTitle">Rest Required</div>
+    <div class="rm-sub" id="rmSub">Worker has ignored rest alerts. Mandatory break required for their safety.</div>
+    <div class="rm-btns">
+      <button class="rm-force" onclick="forceRest()">Force Rest Period</button>
+      <button class="rm-ack" onclick="document.getElementById('restModal').classList.remove('show')">Acknowledge</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ════════ DATA ════════ */
+const WORKERS=[
+  {id:1, name:'Arjun Sharma',  role:'Mason',       zone:'A', color:'#c0524a', avatar:'AS', hr:88,  spo2:96, fat:82, restIgnored:2, connected:true},
+  {id:2, name:'Vikram Singh',  role:'Electrician', zone:'C', color:'#4a6acc', avatar:'VS', hr:118, spo2:91, fat:94, restIgnored:3, connected:true},
+  {id:3, name:'Ravi Patel',    role:'Carpenter',   zone:'B', color:'#3a9c6a', avatar:'RP', hr:76,  spo2:98, fat:45, restIgnored:0, connected:true},
+  {id:4, name:'Suresh Kumar',  role:'Welder',      zone:'A', color:'#9a4acc', avatar:'SK', hr:92,  spo2:95, fat:78, restIgnored:1, connected:true},
+  {id:5, name:'Deepak Yadav',  role:'Helper',      zone:'B', color:'#bc7e34', avatar:'DY', hr:72,  spo2:99, fat:38, restIgnored:0, connected:true},
+  {id:6, name:'Ramesh Gupta',  role:'Plumber',     zone:'C', color:'#2a9aac', avatar:'RG', hr:85,  spo2:97, fat:60, restIgnored:0, connected:true},
+  {id:7, name:'Mohit Verma',   role:'Mason',       zone:'A', color:'#b08030', avatar:'MV', hr:95,  spo2:94, fat:88, restIgnored:2, connected:true},
+  {id:8, name:'Amit Tiwari',   role:'Operator',    zone:'B', color:'#6040b0', avatar:'AT', hr:74,  spo2:98, fat:42, restIgnored:0, connected:true},
+  {id:9, name:'Sanjay Nair',   role:'Carpenter',   zone:'C', color:'#2a8c50', avatar:'SN', hr:68,  spo2:99, fat:33, restIgnored:0, connected:true},
+  {id:10,name:'Karan Mehta',   role:'Helper',      zone:'A', color:'#c04070', avatar:'KM', hr:110, spo2:92, fat:91, restIgnored:3, connected:true},
+  {id:11,name:'Pradeep Das',   role:'Welder',      zone:'B', color:'#3a72b0', avatar:'PD', hr:82,  spo2:97, fat:55, restIgnored:0, connected:true},
+  {id:12,name:'Nitin Joshi',   role:'Electrician', zone:'C', color:'#b05838', avatar:'NJ', hr:79,  spo2:98, fat:48, restIgnored:0, connected:true},
+  {id:13,name:'Bhanu Rawat',   role:'Mason',       zone:'A', color:'#2a8c78', avatar:'BR', hr:0,   spo2:0,  fat:0,  restIgnored:0, connected:false},
+  {id:14,name:'Anil Chandra',  role:'Plumber',     zone:'B', color:'#7030b0', avatar:'AC', hr:0,   spo2:0,  fat:0,  restIgnored:0, connected:false},
+];
+
+let alerts=[
+  {id:1,type:'crit',title:'Vikram Singh — SpO₂ 91%',sub:'Blood oxygen critically low. Immediate attention required. Zone C.',time:'2m ago',worker:2},
+  {id:2,type:'crit',title:'Karan Mehta — HR 110 + Fatigue 91',sub:'High heart rate and extreme fatigue. Rest ignored ×3. Zone A.',time:'5m ago',worker:10},
+  {id:3,type:'warn',title:'Arjun Sharma — Fatigue 82',sub:'Fatigue exceeds threshold. Rest ignored ×2. Zone A.',time:'8m ago',worker:1},
+  {id:4,type:'warn',title:'Mohit Verma — Fatigue 88',sub:'High fatigue score. Mandatory break recommended. Zone A.',time:'12m ago',worker:7},
+  {id:5,type:'info',title:'Suresh Kumar — Fatigue rising (78)',sub:'Approaching alert threshold. Monitor closely. Zone A.',time:'15m ago',worker:4},
+];
+
+let workerFilter='all',currentEmWorker=null,analyticsInited=false;
+let liveHRData=Array.from({length:14},()=>({v:72+Math.round(Math.random()*12)}));
+
+/* ════ LOGIN ════ */
+function togglePw(){
+  const i=document.getElementById('loginPass');
+  const b=event.target;
+  i.type=i.type==='password'?'text':'password';
+  b.textContent=i.type==='password'?'SHOW':'HIDE';
+}
+function doLogin(){
+  const em=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPass').value;
+  const er=document.getElementById('loginErr');
+  if(!em||!pw){er.innerHTML='⚠ Please fill in all fields.';return;}
+  if(em==='manager@siteloop.com'&&pw==='admin123'){
+    er.innerHTML='';
+    document.getElementById('loginPage').classList.add('out');
+    setTimeout(()=>{
+      document.getElementById('loginPage').style.display='none';
+      const app=document.getElementById('mainApp');app.classList.add('in');
+      initApp();
+    },500);
+  }else{er.innerHTML='⚠ Invalid credentials. Use the demo credentials below.';}
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus();});
+
+function doLogout(){
+  document.getElementById('mainApp').classList.remove('in');
+  setTimeout(()=>{
+    document.getElementById('loginPage').style.display='flex';
+    document.getElementById('loginPage').classList.remove('out');
+    analyticsInited=false;
+  },400);
+}
+
+/* ════ INIT ════ */
+function initApp(){
+  renderDashTable();renderDashAlerts();
+  renderWorkersTable();renderAlertsPage();renderSiteMap();
+  initCharts();updateBadges();updateClock();
+  setInterval(updateClock,1000);
+  startLiveTick();
+}
+
+function updateClock(){
+  const n=new Date();
+  const t=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+  const e=document.getElementById('tbClock');if(e)e.textContent=t;
+  const e2=document.getElementById('dashClock');if(e2)e2.textContent=t.slice(0,5);
+}
+
+/* ════ NAV ════ */
+const PAGE_INFO={
+  dashboard:{title:'Dashboard',sub:'Live site overview'},
+  workers:{title:'All Workers',sub:'Real-time worker monitoring'},
+  alerts:{title:'Alerts',sub:'Active alerts & notifications'},
+  sitemap:{title:'Site Map',sub:'Worker locations by zone'},
+  analytics:{title:'Health Trends',sub:'7-day site analytics'},
+};
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nv').forEach(n=>n.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  document.querySelector(`[data-page="${name}"]`).classList.add('on');
+  const info=PAGE_INFO[name]||{title:name,sub:''};
+  document.getElementById('topTitle').textContent=info.title;
+  document.getElementById('topSub').textContent=info.sub;
+  if(name==='analytics'&&!analyticsInited){analyticsInited=true;setTimeout(initAnalyticsCharts,80);}
+}
+document.querySelectorAll('.nv[data-page]').forEach(b=>b.addEventListener('click',()=>goPage(b.dataset.page)));
+
+/* ════ HELPERS ════ */
+function getSt(w){
+  if(!w.connected)return'rest';
+  if(w.hr>115||w.spo2<92||w.fat>90)return'critical';
+  if(w.hr>100||w.spo2<95||w.fat>75)return'warning';
+  return'ok';
+}
+function stBadge(s){
+  if(s==='critical')return`<span class="badge b-crit">Critical</span>`;
+  if(s==='warning') return`<span class="badge b-warn">Warning</span>`;
+  if(s==='rest')    return`<span class="badge b-neu">On Break</span>`;
+  return`<span class="badge b-ok">Healthy</span>`;
+}
+const hrC=v=>v>110?'var(--crit)':v>95?'var(--warn)':'var(--ok)';
+const spC=v=>v<92?'var(--crit)':v<95?'var(--warn)':'var(--ok)';
+const fatC=v=>v>85?'var(--crit)':v>70?'var(--warn)':'var(--ok)';
+
+/* ════ DASH TABLE ════ */
+function renderDashTable(){
+  const tb=document.getElementById('dashTbody');if(!tb)return;
+  tb.innerHTML=WORKERS.filter(w=>w.connected).map(w=>{
+    const s=getSt(w),rc=s==='critical'?'row-crit':s==='warning'?'row-warn':'';
+    return`<tr class="${rc}" onclick="openPanel(${w.id})">
+      <td><div class="w-inf">
+        <div class="w-av" style="background:${w.color}">${w.avatar}</div>
+        <div><div class="w-nm">${w.name}</div><div class="w-role">${w.role}</div></div>
+      </div></td>
+      <td><span class="vc" style="color:${hrC(w.hr)}"><span class="vd" style="background:${hrC(w.hr)}"></span>${w.hr} bpm</span></td>
+      <td><span class="vc" style="color:${spC(w.spo2)}"><span class="vd" style="background:${spC(w.spo2)}"></span>${w.spo2}%</span></td>
+      <td><div class="fat-row">
+        <span class="fat-n" style="color:${fatC(w.fat)}">${w.fat}</span>
+        <div class="fat-bar"><div class="fat-fill" style="width:${w.fat}%;background:${fatC(w.fat)}"></div></div>
+        ${w.restIgnored>0?`<span class="ign-tag">×${w.restIgnored}</span>`:''}
+      </div></td>
+      <td>${stBadge(s)}</td>
+      <td>
+        ${s==='critical'?`<button class="ab ab-crit" onclick="event.stopPropagation();triggerEmergency(${w.id})">🚨 SOS</button>`:''}
+        ${s==='warning'?`<button class="ab ab-warn" onclick="event.stopPropagation();triggerRest(${w.id})">⏸ Rest</button>`:''}
+        ${s==='ok'?`<button class="ab ab-acc" onclick="event.stopPropagation();openPanel(${w.id})">View</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ════ WORKERS TABLE ════ */
+function renderWorkersTable(){
+  const tb=document.getElementById('workersTbody');if(!tb)return;
+  const q=(document.getElementById('workerSearch')||{}).value?.toLowerCase()||'';
+  const list=WORKERS.filter(w=>{
+    const s=getSt(w);
+    const mf=workerFilter==='all'||(workerFilter==='rest'&&!w.connected)||(w.connected&&workerFilter===s);
+    const mq=!q||w.name.toLowerCase().includes(q)||w.role.toLowerCase().includes(q)||w.zone.toLowerCase().includes(q);
+    return mf&&mq;
+  });
+  tb.innerHTML=list.map(w=>{
+    const s=getSt(w),rc=s==='critical'?'row-crit':s==='warning'?'row-warn':'';
+    return`<tr class="${rc}" onclick="openPanel(${w.id})">
+      <td><div class="w-inf">
+        <div class="w-av" style="background:${w.color}">${w.avatar}</div>
+        <div><div class="w-nm">${w.name}</div><div class="w-role">${w.role}</div></div>
+      </div></td>
+      <td><span class="badge b-neu">Zone ${w.zone}</span></td>
+      <td><span class="vc" style="color:${w.connected?hrC(w.hr):'var(--t2)'}">
+        <span class="vd" style="background:${w.connected?hrC(w.hr):'var(--t2)'}"></span>
+        ${w.connected?w.hr+' bpm':'—'}
+      </span></td>
+      <td><span class="vc" style="color:${w.connected?spC(w.spo2):'var(--t2)'}">
+        <span class="vd" style="background:${w.connected?spC(w.spo2):'var(--t2)'}"></span>
+        ${w.connected?w.spo2+'%':'—'}
+      </span></td>
+      <td>${w.connected?`<div class="fat-row">
+        <span class="fat-n" style="color:${fatC(w.fat)}">${w.fat}</span>
+        <div class="fat-bar"><div class="fat-fill" style="width:${w.fat}%;background:${fatC(w.fat)}"></div></div>
+      </div>`:'<span style="color:var(--t2)">—</span>'}</td>
+      <td>${w.restIgnored>0?`<span class="ign-tag">×${w.restIgnored} ignored</span>`:`<span style="color:var(--t2);font-size:.72rem">None</span>`}</td>
+      <td>${stBadge(s)}</td>
+      <td style="white-space:nowrap"><div style="display:flex;gap:6px">
+        <button class="ab ab-acc" onclick="event.stopPropagation();openPanel(${w.id})">Detail</button>
+        ${s==='critical'?`<button class="ab ab-crit" onclick="event.stopPropagation();triggerEmergency(${w.id})">🚨 SOS</button>`:''}
+        ${s==='warning'?`<button class="ab ab-warn" onclick="event.stopPropagation();triggerRest(${w.id})">Rest</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--t2);font-size:.8rem">No workers match your filter</td></tr>`;
+}
+function filterWorkers(){renderWorkersTable();}
+function setFilter(f,btn){
+  workerFilter=f;
+  document.querySelectorAll('.fp').forEach(b=>b.classList.remove('on','on-crit','on-warn','on-ok'));
+  const cls=f==='critical'?'on-crit':f==='warning'?'on-warn':f==='ok'?'on-ok':'on';
+  btn.classList.add(cls);renderWorkersTable();
+}
+
+/* ════ ALERTS ════ */
+function aiHTML(a){
+  const tp=a.type==='crit'?'crit':a.type==='warn'?'warn':a.type==='ok'?'ok':'info';
+  const col=tp==='crit'?'var(--crit)':tp==='warn'?'var(--warn)':tp==='ok'?'var(--ok)':'var(--blue)';
+  const bg=tp==='crit'?'var(--crit-d)':tp==='warn'?'var(--warn-d)':tp==='ok'?'var(--ok-d)':'var(--blue-d)';
+  const ico=tp==='crit'?'<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3H20.5a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>':
+             tp==='warn'?'<circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="15.5" r=".8" fill="currentColor"/>':
+             '<polyline points="20 6 9 17 4 12"/>';
+  return`<div class="ai ${tp}" onclick="openPanel(${a.worker||0})">
+    <div class="ai-ic" style="background:${bg}">
+      <svg viewBox="0 0 24 24" style="stroke:${col};fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round">${ico}</svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="ai-title">${a.title}</div>
+      <div class="ai-sub">${a.sub}</div>
+    </div>
+    <div class="ai-time">${a.time}</div>
+  </div>`;
+}
+function renderDashAlerts(){
+  const el=document.getElementById('dashAlertList');
+  if(el)el.innerHTML=alerts.slice(0,5).map(aiHTML).join('');
+}
+function renderAlertsPage(){
+  const el=document.getElementById('alertsPageList');
+  if(el)el.innerHTML=alerts.length?alerts.map(aiHTML).join(''):`<div style="text-align:center;padding:64px 32px;color:var(--t2);font-size:.82rem"><div style="font-size:2rem;margin-bottom:12px">✓</div>No active alerts — all clear</div>`;
+}
+function clearAlerts(){
+  alerts=[];renderDashAlerts();renderAlertsPage();updateBadges();
+  showToast('All alerts cleared','ok');
+}
+function addAlert(a){
+  a.id=Date.now();alerts.unshift(a);
+  renderDashAlerts();renderAlertsPage();updateBadges();
+}
+
+/* ════ SITE MAP ════ */
+function renderSiteMap(){
+  const zones={A:[],B:[],C:[]};
+  WORKERS.forEach(w=>zones[w.zone].push(w));
+  const el=document.getElementById('siteZones');if(!el)return;
+  el.innerHTML=Object.entries(zones).map(([z,ws])=>`
+    <div class="zone-box">
+      <div class="zone-hdr">
+        <div class="zone-name">Zone ${z} — ${z==='A'?'Foundation':z==='B'?'Structure':'Electrical'}</div>
+        <div class="zone-cnt">${ws.filter(w=>w.connected).length} active</div>
+      </div>
+      <div class="zone-workers">
+        ${ws.map(w=>{
+          const s=getSt(w);
+          const wcls=s==='critical'?'w-crit':s==='warning'?'w-warn':'';
+          const offcls=!w.connected?'zw-offline':'';
+          return`<div class="zw ${wcls} ${offcls}" style="background:${w.color}" onclick="openPanel(${w.id})" title="${w.name} · ${w.role} · ${s}">
+            ${s!=='ok'&&s!=='rest'?'<div class="zw-ring"></div>':''}
+            ${w.avatar}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('zoneACount').textContent=zones.A.filter(w=>w.connected).length;
+  document.getElementById('zoneBCount').textContent=zones.B.filter(w=>w.connected).length;
+  document.getElementById('zoneCCount').textContent=zones.C.filter(w=>w.connected).length;
+}
+
+/* ════ SIDE PANEL ════ */
+function openPanel(id){
+  const w=WORKERS.find(x=>x.id===id);if(!w)return;
+  const s=getSt(w);
+  document.getElementById('spTitle').textContent=w.name;
+  const hist=[
+    {l:'Heart Rate 1h ago',v:w.connected?(w.hr-4)+' bpm':'—'},
+    {l:'SpO₂ 1h ago',v:w.connected?w.spo2+'%':'—'},
+    {l:'Fatigue 1h ago',v:w.connected?Math.max(0,w.fat-10):'—'},
+    {l:'Rest breaks today',v:w.restIgnored>0?`${w.restIgnored} ignored`:'All taken'},
+    {l:'Shift duration',v:w.connected?'6h 24m':'On break'},
+    {l:'Zone assignment',v:'Zone '+w.zone},
+    {l:'Last synced',v:w.connected?'3 sec ago':'Offline'},
+  ];
+  document.getElementById('spBody').innerHTML=`
+    <div class="sp-hero">
+      <div class="sp-av" style="background:${w.color}">${w.avatar}</div>
+      <div>
+        <div class="sp-wname">${w.name}</div>
+        <div class="sp-wmeta">${w.role} · Zone ${w.zone}</div>
+        <div style="margin-top:8px">${stBadge(s)}</div>
+      </div>
+    </div>
+    ${w.connected?`
+    <div class="sp-vgrid">
+      <div class="sp-v">
+        <div class="sp-v-val" style="color:${hrC(w.hr)}">${w.hr}</div>
+        <div class="sp-v-lbl">BPM</div>
+      </div>
+      <div class="sp-v">
+        <div class="sp-v-val" style="color:${spC(w.spo2)}">${w.spo2}%</div>
+        <div class="sp-v-lbl">SpO₂</div>
+      </div>
+      <div class="sp-v">
+        <div class="sp-v-val" style="color:${fatC(w.fat)}">${w.fat}</div>
+        <div class="sp-v-lbl">Fatigue</div>
+      </div>
+    </div>
+    <div class="sp-chart-wrap">
+      <div class="sp-chart-lbl">Heart Rate — Last 60 min</div>
+      <div style="height:90px"><canvas id="spHRC"></canvas></div>
+    </div>
+    `:`<div style="padding:28px 20px;text-align:center;border:1px solid var(--border);border-radius:13px;margin-bottom:16px">
+      <div style="font-size:1.5rem;margin-bottom:8px">💤</div>
+      <div style="font-size:.8rem;color:var(--t1);font-weight:500">Worker on break — device offline</div>
+    </div>`}
+    <div class="sp-hist">
+      ${hist.map(h=>`<div class="sp-hi"><span class="sp-hi-l">${h.l}</span><span class="sp-hi-v">${h.v}</span></div>`).join('')}
+    </div>
+    ${s==='critical'?`<button class="sp-act-btn spa-c" style="margin-top:14px" onclick="triggerEmergency(${w.id})">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 012.08 4.16 2 2 0 014 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+      Call Emergency — 108
+    </button>`:''}
+    ${s==='warning'?`<button class="sp-act-btn spa-w" style="margin-top:14px" onclick="triggerRest(${w.id})">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/></svg>
+      Send Rest Alert to Worker
+    </button>`:''}
+  `;
+  document.getElementById('sidePanel').classList.add('open');
+  if(w.connected){
+    setTimeout(()=>{
+      const c=document.getElementById('spHRC');if(!c)return;
+      const d=Array.from({length:12},()=>Math.max(55,w.hr+(Math.random()-.5)*18|0));
+      new Chart(c.getContext('2d'),{
+        type:'line',
+        data:{
+          labels:d.map((_,i)=>i*5+'m'),
+          datasets:[{data:d,borderColor:hrC(w.hr),backgroundColor:'transparent',tension:.45,pointRadius:2.5,borderWidth:2,pointBackgroundColor:hrC(w.hr)}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{grid:{color:'rgba(255,255,255,.04)'},border:{display:false},ticks:{font:{size:8},color:'rgba(107,122,154,.7)'}},
+            y:{grid:{color:'rgba(255,255,255,.04)'},border:{display:false},ticks:{font:{size:8},color:'rgba(107,122,154,.7)'}}
+          }
+        }
+      });
+    },80);
+  }
+}
+function closePanel(){document.getElementById('sidePanel').classList.remove('open');}
+
+/* ════ EMERGENCY ════ */
+function triggerEmergency(id){
+  const w=WORKERS.find(x=>x.id===id);if(!w)return;
+  currentEmWorker=w;
+  document.getElementById('emWorkerName').textContent=w.name+' — '+w.role+' · Zone '+w.zone;
+  document.getElementById('emHR').textContent=w.hr+' bpm';
+  document.getElementById('emSPO').textContent=w.spo2+'%';
+  document.getElementById('emFat').textContent=w.fat;
+  document.getElementById('emStatus').textContent='CRITICAL — IMMEDIATE ACTION REQUIRED';
+  document.getElementById('ambulanceCalled').classList.remove('show');
+  const btn=document.querySelector('.em-call');
+  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 012.08 4.16 2 2 0 014 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>Call Ambulance — 108';
+  btn.style.background='linear-gradient(135deg,#ff3d5a,#d4003e)';
+  document.getElementById('emergencyModal').classList.add('show');
+  showToast('🚨 EMERGENCY: '+w.name+' — Critical vitals detected','crit',9000);
+}
+function callAmbulance(){
+  document.getElementById('emStatus').textContent='AMBULANCE DISPATCHED — CALLING 108…';
+  document.getElementById('ambulanceCalled').classList.add('show');
+  const btn=document.querySelector('.em-call');
+  btn.innerHTML='✓ Ambulance Called — 108';
+  btn.style.background='linear-gradient(135deg,var(--ok),#00a87e)';
+  if(currentEmWorker){
+    addAlert({type:'crit',title:'🚑 Ambulance called — '+currentEmWorker.name,sub:'Emergency services dispatched. ETA 8 min. Zone '+currentEmWorker.zone+'.',time:'Just now',worker:currentEmWorker.id});
+  }
+  showToast('🚑 Ambulance dispatched — ETA 8 minutes','ok',7000);
+}
+function closeEmergency(){document.getElementById('emergencyModal').classList.remove('show');}
+
+/* ════ REST ════ */
+function triggerRest(id){
+  const w=WORKERS.find(x=>x.id===id);if(!w)return;
+  document.getElementById('rmTitle').textContent='Rest Required — '+w.name;
+  document.getElementById('rmSub').textContent=`Fatigue score: ${w.fat}/100. Rest ignored ×${w.restIgnored}. Sending mandatory rest notification to the Shakti Loop worker app now.`;
+  document.getElementById('restModal').classList.add('show');
+  showToast('⏸ Rest alert sent to '+w.name,'warn');
+}
+function forceRest(){
+  document.getElementById('restModal').classList.remove('show');
+  showToast('Mandatory rest activated — worker notified on device','ok');
+}
+
+/* ════ BADGES ════ */
+function updateBadges(){
+  const crit=WORKERS.filter(w=>getSt(w)==='critical').length;
+  const warn=WORKERS.filter(w=>getSt(w)==='warning').length;
+  const tot=alerts.length;
+  document.getElementById('navAlertBadge').textContent=tot;
+  document.getElementById('navWarnBadge').textContent=warn;
+  const acb=document.getElementById('alertCountBadge');if(acb)acb.textContent=alerts.filter(a=>a.type==='crit').length;
+  const da=document.getElementById('dashAlerts');if(da)da.textContent=tot;
+  const dhf=document.getElementById('dashHighFat');if(dhf)dhf.textContent=WORKERS.filter(w=>w.fat>75&&w.connected).length;
+  const tab=document.getElementById('topAlertBtn');
+  if(crit>0){tab.style.display='flex';document.getElementById('topAlertTxt').textContent=crit+' Critical';}
+  else tab.style.display='none';
+}
+
+/* ════ LIVE TICK ════ */
+function startLiveTick(){
+  setInterval(()=>{
+    WORKERS.forEach(w=>{
+      if(!w.connected)return;
+      w.hr=Math.max(60,Math.min(130,w.hr+(Math.random()-.5)*4|0));
+      w.spo2=Math.max(88,Math.min(100,w.spo2+(Math.random()-.5)*1.2|0));
+      w.fat=Math.max(0,Math.min(100,w.fat+(Math.random()-.3)*1.5|0));
+      if(w.fat>75&&w.restIgnored>=1&&Math.random()<.018){
+        addAlert({type:'warn',title:'Fatigue Alert — '+w.name,sub:`Fatigue ${w.fat}/100. Rest ignored ×${w.restIgnored}. Alert sent to worker app.`,time:'Just now',worker:w.id});
+        showToast('⚠ '+w.name+' fatigue '+w.fat+'/100','warn');
+      }
+      if((w.hr>120||w.spo2<90)&&Math.random()<.004){
+        addAlert({type:'crit',title:'CRITICAL — '+w.name,sub:`HR ${w.hr} bpm, SpO₂ ${w.spo2}%. Emergency alert triggered.`,time:'Just now',worker:w.id});
+        showToast('🚨 CRITICAL: '+w.name+' HR '+w.hr,'crit',8000);
+      }
+    });
+    const active=WORKERS.filter(w=>w.connected);
+    const avgHR=Math.round(active.reduce((s,w)=>s+w.hr,0)/active.length);
+    liveHRData.push({v:avgHR});
+    if(liveHRData.length>20)liveHRData.shift();
+    updateSiteHRChart();
+    const avEl=document.getElementById('dashAvgHR');if(avEl)avEl.textContent=avgHR;
+    renderDashTable();renderSiteMap();updateBadges();
+  },3000);
+}
+
+/* ════ TOAST ════ */
+function showToast(msg,type='info',dur=4500){
+  const container=document.getElementById('toastWrap');
+  const id='t'+Date.now();
+  const cc={crit:'var(--crit)',warn:'var(--warn)',ok:'var(--ok)',info:'var(--blue)'};
+  const bc={crit:'var(--crit-d)',warn:'var(--warn-d)',ok:'var(--ok-d)',info:'var(--blue-d)'};
+  const tc=type==='crit'?'t-crit':type==='warn'?'t-warn':type==='ok'?'t-ok':'';
+  const ico=type==='crit'?'<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3H20.5a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/>':
+             type==='ok'?'<polyline points="20 6 9 17 4 12"/>':
+             '<circle cx="12" cy="12" r="9"/><path d="M12 8v5"/>';
+  const d=document.createElement('div');
+  d.className=`toast ${tc}`;d.id=id;
+  d.innerHTML=`<div class="t-ico" style="background:${bc[type]||bc.info}"><svg viewBox="0 0 24 24" style="stroke:${cc[type]||cc.info};stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round">${ico}</svg></div><div class="t-msg">${msg}</div><button class="t-x" onclick="rmToast('${id}')">×</button>`;
+  container.appendChild(d);
+  setTimeout(()=>rmToast(id),dur);
+}
+function rmToast(id){
+  const el=document.getElementById(id);
+  if(el){el.style.animation='t-out .28s ease forwards';setTimeout(()=>el.remove(),300);}
+}
+
+/* ════ CHARTS ════ */
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.font.size=10;
+Chart.defaults.color='rgba(106,125,168,.8)';
+const GC='rgba(255,255,255,.04)';
+const D7=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const baseOpts=()=>({
+  responsive:true,maintainAspectRatio:false,
+  plugins:{
+    legend:{display:false},
+    tooltip:{
+      backgroundColor:'#0b0f1c',borderColor:'rgba(255,255,255,.1)',borderWidth:1,
+      padding:11,cornerRadius:10,
+      titleFont:{family:"'Outfit'",size:11,weight:'700'},
+      bodyFont:{family:"'DM Sans'",size:10},
+    }
+  },
+  scales:{
+    x:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}}},
+    y:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}}}
+  }
+});
+const mkG=(ctx,col,h=150)=>{const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,col);g.addColorStop(1,'transparent');return g;};
+const lDs=(data,col,fill=null,t=.45,pr=2.5)=>({data,borderColor:col,backgroundColor:fill||'transparent',fill:!!fill,tension:t,pointRadius:pr,borderWidth:2,pointBackgroundColor:col,pointBorderColor:'transparent'});
+
+let siteHRChart=null;
+function initCharts(){
+  setTimeout(()=>{
+    const c1=document.getElementById('cSiteHR');
+    if(c1){
+      const ctx=c1.getContext('2d');
+      const g=mkG(ctx,'rgba(0,217,163,.18)');
+      siteHRChart=new Chart(ctx,{type:'line',
+        data:{labels:liveHRData.map((_,i)=>i+''),datasets:[lDs(liveHRData.map(d=>d.v),'#00d9a3',g)]},
+        options:{...baseOpts(),scales:{
+          x:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}}},
+          y:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}},min:60,max:120}
+        }}
+      });
+    }
+    const c2=document.getElementById('cFatDist');
+    if(c2){
+      const normal=WORKERS.filter(w=>w.connected&&w.fat<=60).length;
+      const mod=WORKERS.filter(w=>w.connected&&w.fat>60&&w.fat<=80).length;
+      const high=WORKERS.filter(w=>w.connected&&w.fat>80).length;
+      new Chart(c2.getContext('2d'),{type:'doughnut',
+        data:{labels:['Normal ≤60','Moderate 61–80','High >80'],datasets:[{
+          data:[normal,mod,high],
+          backgroundColor:['rgba(0,217,163,.85)','rgba(255,178,36,.85)','rgba(255,61,90,.85)'],
+          borderWidth:0,borderRadius:8,hoverOffset:8
+        }]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'72%',
+          plugins:{
+            legend:{display:true,position:'right',labels:{font:{family:"'DM Sans'",size:10},boxWidth:10,padding:14,usePointStyle:true}},
+            tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} workers`},backgroundColor:'#0b0f1c',borderColor:'rgba(255,255,255,.1)',borderWidth:1,padding:10,cornerRadius:10}
+          }
+        }
+      });
+    }
+  },120);
+}
+function updateSiteHRChart(){
+  if(!siteHRChart)return;
+  siteHRChart.data.labels=liveHRData.map((_,i)=>i+'');
+  siteHRChart.data.datasets[0].data=liveHRData.map(d=>d.v);
+  siteHRChart.update('none');
+}
+function initAnalyticsCharts(){
+  const op=baseOpts();
+  const c1=document.getElementById('cAnalHR');
+  if(c1){const g=mkG(c1.getContext('2d'),'rgba(0,217,163,.16)');new Chart(c1.getContext('2d'),{type:'line',data:{labels:D7,datasets:[lDs([78,81,79,84,80,77,79],'#00d9a3',g,0.45,3)]},options:op});}
+  const c2=document.getElementById('cAnalFat');
+  if(c2)new Chart(c2.getContext('2d'),{type:'bar',data:{labels:D7,datasets:[{data:[52,61,68,72,65,58,66],backgroundColor:['rgba(0,217,163,.75)','rgba(255,178,36,.75)','rgba(255,178,36,.75)','rgba(255,61,90,.75)','rgba(255,178,36,.75)','rgba(0,217,163,.75)','rgba(255,178,36,.75)'],borderRadius:8,borderSkipped:false}]},options:op});
+  const c3=document.getElementById('cAnalSPO');
+  if(c3){const g=mkG(c3.getContext('2d'),'rgba(59,158,255,.16)');new Chart(c3.getContext('2d'),{type:'line',data:{labels:D7,datasets:[lDs([97.2,96.8,97.5,96.4,97.1,97.8,97.0],'#3b9eff',g,0.45,3)]},options:{...op,scales:{x:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}}},y:{grid:{color:GC},border:{display:false},ticks:{font:{size:9}},min:94,max:100}}}});}
+  const c4=document.getElementById('cAnalAlerts');
+  if(c4)new Chart(c4.getContext('2d'),{type:'bar',data:{labels:D7,datasets:[{data:[1,3,2,5,4,2,3],backgroundColor:'rgba(255,61,90,.72)',borderRadius:8,borderSkipped:false,hoverBackgroundColor:'rgba(255,61,90,.9)'}]},options:op});
+}
+
+/* Auto emergency popup on load */
+setTimeout(()=>{
+  const cw=WORKERS.filter(w=>getSt(w)==='critical');
+  if(cw.length)setTimeout(()=>triggerEmergency(cw[0].id),1800);
+},1200);
+</script>
+</body>
+</html>
